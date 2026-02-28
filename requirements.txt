@@ -1,0 +1,21 @@
+# Core dependencies
+aiohttp>=3.9.0
+numpy>=1.24.0
+scipy>=1.11.0
+requests>=2.31.0
+
+# For optimization (optional, for advanced IP solving)
+# gurobipy>=11.0.0  # Commercial solver, requires license
+cvxpy>=1.4.0  # Open-source alternative
+
+# CLI and formatting
+rich>=13.0.0
+click>=8.1.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+
+# Development
+black>=23.0.0
+ruff>=0.1.0
