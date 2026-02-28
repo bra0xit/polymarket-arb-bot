@@ -17,6 +17,11 @@ from dataclasses import dataclass
 from pathlib import Path
 import argparse
 import os
+import urllib.request
+import urllib.parse
+
+# Telegram config - sends via Clawdbot
+TELEGRAM_ENABLED = True
 
 
 @dataclass
@@ -100,6 +105,26 @@ def format_alert(spread: MarketSpread) -> str:
 ⏰ {datetime.now().strftime('%H:%M:%S')}"""
 
 
+def send_telegram_alert(message: str, chat_id: str = "1971982224") -> bool:
+    """Send alert via Clawdbot CLI to Telegram."""
+    try:
+        result = subprocess.run(
+            [
+                "clawdbot", "message", "send",
+                "--channel", "telegram",
+                "--target", chat_id,
+                "--message", message
+            ],
+            capture_output=True,
+            text=True,
+            timeout=15
+        )
+        return result.returncode == 0
+    except Exception as e:
+        print(f"Telegram send error: {e}")
+        return False
+
+
 def save_alert(spread: MarketSpread, filepath: str = "alerts.jsonl"):
     """Append alert to JSONL file."""
     alert = {
@@ -124,7 +149,8 @@ async def monitor_spreads(
     min_volume: float = 1000,
     min_liquidity: float = 500,
     alert_file: str = "alerts.jsonl",
-    verbose: bool = True
+    verbose: bool = True,
+    notify_telegram: bool = False
 ):
     """
     Continuously monitor spreads and alert on wide ones.
@@ -150,6 +176,7 @@ async def monitor_spreads(
     print(f"  Min Liquidity: ${min_liquidity:,.0f}")
     print(f"  Scan Interval: {interval}s")
     print(f"  Alerts saved to: {alert_file}")
+    print(f"  Telegram alerts: {'ON 📱' if notify_telegram else 'OFF'}")
     print("="*60)
     print("\nMonitoring... (Ctrl+C to stop)\n")
     
@@ -195,13 +222,22 @@ async def monitor_spreads(
                     seen_alerts.add(alert_key)
                     total_alerts += 1
                     
+                    alert_msg = format_alert(spread)
+                    
                     # Print alert
                     print("\n" + "!"*60)
-                    print(format_alert(spread))
+                    print(alert_msg)
                     print("!"*60 + "\n")
                     
                     # Save to file
                     save_alert(spread, alert_file)
+                    
+                    # Send Telegram notification
+                    if notify_telegram:
+                        if send_telegram_alert(alert_msg):
+                            print("📱 Telegram alert sent!")
+                        else:
+                            print("⚠️ Telegram alert failed")
             
             # Clean old alerts (reset after 10 minutes)
             if scan_count % 20 == 0:
@@ -266,6 +302,8 @@ if __name__ == "__main__":
                        help="Run single scan and exit")
     parser.add_argument("--quiet", action="store_true",
                        help="Only show alerts, not every scan")
+    parser.add_argument("--notify", action="store_true",
+                       help="Send Telegram notifications on alerts")
     
     args = parser.parse_args()
     
@@ -277,5 +315,6 @@ if __name__ == "__main__":
             interval=args.interval,
             min_volume=args.min_volume,
             min_liquidity=args.min_liquidity,
-            verbose=not args.quiet
+            verbose=not args.quiet,
+            notify_telegram=args.notify
         ))
