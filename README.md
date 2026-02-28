@@ -35,18 +35,41 @@ polymarket-arb-bot/
 
 ## Getting Started
 
+### 1. Install Polymarket CLI (official)
 ```bash
-# Install Polymarket CLI (by @SuhailKakar)
-# https://github.com/SuhailKakar/polymarket-cli
+# Homebrew (macOS/Linux)
+brew tap Polymarket/polymarket-cli https://github.com/Polymarket/polymarket-cli
+brew install polymarket
 
-# Clone this repo
+# Or via shell script
+curl -sSL https://raw.githubusercontent.com/Polymarket/polymarket-cli/main/install.sh | sh
+
+# Verify
+polymarket --version
+```
+
+### 2. Clone this repo
+```bash
 git clone https://github.com/bra0xit/polymarket-arb-bot
 cd polymarket-arb-bot
+pip install -r requirements.txt
+```
 
-# Install dependencies
-pip install -r requirements.txt  # or npm install
+### 3. Test the CLI (no wallet needed)
+```bash
+# Browse markets
+polymarket markets list --limit 5
+polymarket markets search "election"
 
-# Run detection
+# Check order book
+polymarket clob book <token_id>
+
+# JSON output for scripts
+polymarket -o json markets list --limit 10
+```
+
+### 4. Run arbitrage detection
+```bash
 python src/detection/simple_arb.py
 ```
 
@@ -69,10 +92,11 @@ python src/detection/simple_arb.py
 
 ## Resources
 
+- [Polymarket CLI](https://github.com/Polymarket/polymarket-cli) - Official Rust CLI (browse, trade, JSON API)
 - [Research Paper](https://arxiv.org/abs/2508.03474v1) - "Unravelling the Probabilistic Forest: Arbitrage in Prediction Markets"
 - [Theory Foundation](https://arxiv.org/abs/1606.02825v2) - "Arbitrage-Free Combinatorial Market Making via Integer Programming"
 - [Polymarket API Docs](https://docs.polymarket.com/)
-- [Polymarket CLI](https://github.com/SuhailKakar/polymarket-cli)
+- [Polymarket Agents](https://github.com/Polymarket/agents) - Official AI agent framework
 
 ## Disclaimer
 
